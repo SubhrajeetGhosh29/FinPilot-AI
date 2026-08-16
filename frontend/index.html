@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FinPilot AI | Financial Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">F</div>
+            <div>
+                <h2>FinPilot</h2>
+                <span>AI Finance</span>
+            </div>
+        </div>
+
+        <nav>
+            <button class="nav-item active">
+                <span>⌂</span>
+                Dashboard
+            </button>
+
+            <button class="nav-item">
+                <span>↗</span>
+                Transactions
+            </button>
+
+            <button class="nav-item">
+                <span>◎</span>
+                Analytics
+            </button>
+
+            <button class="nav-item">
+                <span>✦</span>
+                AI Insights
+            </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <button id="themeToggle" class="theme-btn">
+                ☾ Dark Mode
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- HEADER -->
+        <header>
+
+            <div>
+                <p class="eyebrow">FINANCIAL OVERVIEW</p>
+                <h1>Welcome back, <span id="userName">User</span> 👋</h1>
+                <p class="subtitle">
+                    Here's what your finances look like today.
+                </p>
+            </div>
+
+            <div class="header-actions">
+
+                <button id="refreshBtn" class="secondary-btn">
+                    ↻ Refresh
+                </button>
+
+                <button id="addExpenseBtn" class="primary-btn">
+                    + Add Expense
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- STATUS MESSAGE -->
+        <div id="statusMessage"></div>
+
+
+        <!-- SUMMARY CARDS -->
+        <section class="cards">
+
+            <div class="card">
+                <div class="card-top">
+                    <span>Total Spending</span>
+                    <span class="card-icon">₹</span>
+                </div>
+
+                <h2 id="totalExpenses">₹0</h2>
+                <p>Total recorded expenses</p>
+            </div>
+
+
+            <div class="card">
+                <div class="card-top">
+                    <span>Transactions</span>
+                    <span class="card-icon">↗</span>
+                </div>
+
+                <h2 id="transactionCount">0</h2>
+                <p>Recorded transactions</p>
+            </div>
+
+
+            <div class="card">
+                <div class="card-top">
+                    <span>Average Expense</span>
+                    <span class="card-icon">≈</span>
+                </div>
+
+                <h2 id="averageExpense">₹0</h2>
+                <p>Average per transaction</p>
+            </div>
+
+
+            <div class="card health-card">
+
+                <div class="card-top">
+                    <span>AI Risk Level</span>
+                    <span class="pulse"></span>
+                </div>
+
+                <h2 id="riskLevel">--</h2>
+                <p id="financialStatus">Waiting for analysis</p>
+
+            </div>
+
+        </section>
+
+
+        <!-- CHART SECTION -->
+        <section class="grid">
+
+            <div class="panel chart-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">ANALYTICS</p>
+                        <h3>Spending Breakdown</h3>
+                    </div>
+
+                    <span id="highestCategoryBadge" class="badge">
+                        Loading...
+                    </span>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+
+            </div>
+
+
+            <!-- AI PANEL -->
+            <div class="panel ai-panel">
+
+                <div class="ai-title">
+                    <div class="ai-logo">✦</div>
+
+                    <div>
+                        <p class="eyebrow">FINPILOT INTELLIGENCE</p>
+                        <h3>AI Financial Health</h3>
+                    </div>
+                </div>
+
+
+                <div class="health-score">
+
+                    <span>Status</span>
+
+                    <strong id="aiStatus">
+                        Loading...
+                    </strong>
+
+                </div>
+
+
+                <div class="ai-section">
+
+                    <h4>✦ Smart Insights</h4>
+
+                    <div id="aiInsights">
+                        <p class="loading-text">
+                            Analysing your spending...
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="ai-section">
+
+                    <h4>→ Recommendations</h4>
+
+                    <div id="aiRecommendations">
+                        <p class="loading-text">
+                            Preparing recommendations...
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RECENT TRANSACTIONS -->
+        <section class="panel transactions-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <p class="eyebrow">ACTIVITY</p>
+                    <h3>Recent Transactions</h3>
+                </div>
+
+                <input
+                    id="transactionSearch"
+                    class="search-input"
+                    type="text"
+                    placeholder="Search transactions..."
+                >
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="transactionTable">
+
+                        <tr>
+                            <td colspan="4" class="empty">
+                                Loading transactions...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- ADD EXPENSE MODAL -->
+<div id="expenseModal" class="modal">
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div>
+                <p class="eyebrow">NEW TRANSACTION</p>
+                <h2>Add Expense</h2>
+            </div>
+
+            <button id="closeModal" class="close-btn">
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="expenseForm">
+
+            <label>
+                Amount
+                <input
+                    id="expenseAmount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="₹ 0.00"
+                    required
+                >
+            </label>
+
+
+            <label>
+                Category
+
+                <select id="expenseCategory" required>
+
+                    <option value="">Select category</option>
+
+                    <option value="Food">
+                        Food
+                    </option>
+
+                    <option value="Transport">
+                        Transport
+                    </option>
+
+                    <option value="Shopping">
+                        Shopping
+                    </option>
+
+                    <option value="Entertainment">
+                        Entertainment
+                    </option>
+
+                    <option value="Bills">
+                        Bills
+                    </option>
+
+                    <option value="Health">
+                        Health
+                    </option>
+
+                    <option value="Education">
+                        Education
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+                Description
+
+                <input
+                    id="expenseDescription"
+                    type="text"
+                    placeholder="What did you spend on?"
+                >
+
+            </label>
+
+
+            <label>
+                Date
+
+                <input
+                    id="expenseDate"
+                    type="date"
+                    required
+                >
+
+            </label>
+
+
+            <button
+                type="submit"
+                class="primary-btn submit-btn"
+            >
+                Add Expense
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>

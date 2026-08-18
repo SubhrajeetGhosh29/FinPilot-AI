@@ -3,7 +3,11 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Expense
-from ..schemas.expense import ExpenseCreate, ExpenseResponse
+from ..schemas.expense import (
+    ExpenseCreate,
+    ExpenseResponse,
+    ExpenseUpdate
+)
 
 
 router = APIRouter(
@@ -17,7 +21,6 @@ def create_expense(
     expense: ExpenseCreate,
     db: Session = Depends(get_db)
 ):
-    # Check that the user exists
     from ..models import User
 
     user = db.query(User).filter(
@@ -66,6 +69,36 @@ def get_expense(
             status_code=404,
             detail="Expense not found"
         )
+
+    return expense
+
+
+@router.put(
+    "/{expense_id}",
+    response_model=ExpenseResponse
+)
+def update_expense(
+    expense_id: int,
+    expense_data: ExpenseUpdate,
+    db: Session = Depends(get_db)
+):
+    expense = db.query(Expense).filter(
+        Expense.id == expense_id
+    ).first()
+
+    if not expense:
+        raise HTTPException(
+            status_code=404,
+            detail="Expense not found"
+        )
+
+    expense.amount = expense_data.amount
+    expense.category = expense_data.category
+    expense.description = expense_data.description
+    expense.expense_date = expense_data.expense_date
+
+    db.commit()
+    db.refresh(expense)
 
     return expense
 

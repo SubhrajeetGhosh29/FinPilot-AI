@@ -3,11 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>FinPilot AI | Financial Dashboard</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css?v=5"
+    >
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -16,11 +23,11 @@
 
 <div class="app">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
 
         <div class="brand">
             <div class="brand-icon">F</div>
+
             <div>
                 <h2>FinPilot</h2>
                 <span>AI Finance</span>
@@ -28,29 +35,49 @@
         </div>
 
         <nav>
-            <button class="nav-item active">
+            <button
+                id="dashboardNav"
+                class="nav-item active"
+                type="button"
+            >
                 <span>⌂</span>
                 Dashboard
             </button>
 
-            <button class="nav-item">
+            <button
+                id="transactionsNav"
+                class="nav-item"
+                type="button"
+            >
                 <span>↗</span>
                 Transactions
             </button>
 
-            <button class="nav-item">
+            <button
+                class="nav-item"
+                type="button"
+                disabled
+            >
                 <span>◎</span>
                 Analytics
             </button>
 
-            <button class="nav-item">
+            <button
+                class="nav-item"
+                type="button"
+                disabled
+            >
                 <span>✦</span>
                 AI Insights
             </button>
         </nav>
 
         <div class="sidebar-bottom">
-            <button id="themeToggle" class="theme-btn">
+            <button
+                id="themeToggle"
+                class="theme-btn"
+                type="button"
+            >
                 ☾ Dark Mode
             </button>
         </div>
@@ -58,213 +85,347 @@
     </aside>
 
 
-    <!-- MAIN CONTENT -->
     <main class="main">
 
-        <!-- HEADER -->
-        <header>
+        <!-- DASHBOARD VIEW -->
+        <section id="dashboardView">
 
-            <div>
-                <p class="eyebrow">FINANCIAL OVERVIEW</p>
-                <h1>Welcome back, <span id="userName">User</span> 👋</h1>
-                <p class="subtitle">
-                    Here's what your finances look like today.
-                </p>
-            </div>
-
-            <div class="header-actions">
-
-                <button id="refreshBtn" class="secondary-btn">
-                    ↻ Refresh
-                </button>
-
-                <button id="addExpenseBtn" class="primary-btn">
-                    + Add Expense
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <!-- STATUS MESSAGE -->
-        <div id="statusMessage"></div>
-
-
-        <!-- SUMMARY CARDS -->
-        <section class="cards">
-
-            <div class="card">
-                <div class="card-top">
-                    <span>Total Spending</span>
-                    <span class="card-icon">₹</span>
-                </div>
-
-                <h2 id="totalExpenses">₹0</h2>
-                <p>Total recorded expenses</p>
-            </div>
-
-
-            <div class="card">
-                <div class="card-top">
-                    <span>Transactions</span>
-                    <span class="card-icon">↗</span>
-                </div>
-
-                <h2 id="transactionCount">0</h2>
-                <p>Recorded transactions</p>
-            </div>
-
-
-            <div class="card">
-                <div class="card-top">
-                    <span>Average Expense</span>
-                    <span class="card-icon">≈</span>
-                </div>
-
-                <h2 id="averageExpense">₹0</h2>
-                <p>Average per transaction</p>
-            </div>
-
-
-            <div class="card health-card">
-
-                <div class="card-top">
-                    <span>AI Risk Level</span>
-                    <span class="pulse"></span>
-                </div>
-
-                <h2 id="riskLevel">--</h2>
-                <p id="financialStatus">Waiting for analysis</p>
-
-            </div>
-
-        </section>
-
-
-        <!-- CHART SECTION -->
-        <section class="grid">
-
-            <div class="panel chart-panel">
-
-                <div class="panel-header">
-                    <div>
-                        <p class="eyebrow">ANALYTICS</p>
-                        <h3>Spending Breakdown</h3>
-                    </div>
-
-                    <span id="highestCategoryBadge" class="badge">
-                        Loading...
-                    </span>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="expenseChart"></canvas>
-                </div>
-
-            </div>
-
-
-            <!-- AI PANEL -->
-            <div class="panel ai-panel">
-
-                <div class="ai-title">
-                    <div class="ai-logo">✦</div>
-
-                    <div>
-                        <p class="eyebrow">FINPILOT INTELLIGENCE</p>
-                        <h3>AI Financial Health</h3>
-                    </div>
-                </div>
-
-
-                <div class="health-score">
-
-                    <span>Status</span>
-
-                    <strong id="aiStatus">
-                        Loading...
-                    </strong>
-
-                </div>
-
-
-                <div class="ai-section">
-
-                    <h4>✦ Smart Insights</h4>
-
-                    <div id="aiInsights">
-                        <p class="loading-text">
-                            Analysing your spending...
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="ai-section">
-
-                    <h4>→ Recommendations</h4>
-
-                    <div id="aiRecommendations">
-                        <p class="loading-text">
-                            Preparing recommendations...
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- RECENT TRANSACTIONS -->
-        <section class="panel transactions-panel">
-
-            <div class="panel-header">
+            <header>
 
                 <div>
-                    <p class="eyebrow">ACTIVITY</p>
-                    <h3>Recent Transactions</h3>
+                    <p class="eyebrow">
+                        FINANCIAL OVERVIEW
+                    </p>
+
+                    <h1>
+                        Welcome back,
+                        <span id="userName">User</span> 👋
+                    </h1>
+
+                    <p class="subtitle">
+                        Here's what your finances look like today.
+                    </p>
                 </div>
 
-                <input
-                    id="transactionSearch"
-                    class="search-input"
-                    type="text"
-                    placeholder="Search transactions..."
+                <div class="header-actions">
+
+                    <button
+                        id="refreshBtn"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        ↻ Refresh
+                    </button>
+
+                    <button
+                        id="addExpenseBtn"
+                        class="primary-btn"
+                        type="button"
+                    >
+                        + Add Expense
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <div id="statusMessage"></div>
+
+
+            <section class="cards">
+
+                <div class="card">
+                    <div class="card-top">
+                        <span>Total Spending</span>
+                        <span class="card-icon">₹</span>
+                    </div>
+
+                    <h2 id="totalExpenses">₹0</h2>
+
+                    <p>Total recorded expenses</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-top">
+                        <span>Transactions</span>
+                        <span class="card-icon">↗</span>
+                    </div>
+
+                    <h2 id="transactionCount">0</h2>
+
+                    <p>Recorded transactions</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-top">
+                        <span>Average Expense</span>
+                        <span class="card-icon">≈</span>
+                    </div>
+
+                    <h2 id="averageExpense">₹0</h2>
+
+                    <p>Average per transaction</p>
+                </div>
+
+                <div class="card health-card">
+                    <div class="card-top">
+                        <span>AI Risk Level</span>
+                        <span class="pulse"></span>
+                    </div>
+
+                    <h2 id="riskLevel">--</h2>
+
+                    <p id="financialStatus">
+                        Waiting for analysis
+                    </p>
+                </div>
+
+            </section>
+
+
+            <section class="grid">
+
+                <div class="panel chart-panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">ANALYTICS</p>
+                            <h3>Spending Breakdown</h3>
+                        </div>
+
+                        <span
+                            id="highestCategoryBadge"
+                            class="badge"
+                        >
+                            Loading...
+                        </span>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <div class="panel ai-panel">
+
+                    <div class="ai-title">
+                        <div class="ai-logo">✦</div>
+
+                        <div>
+                            <p class="eyebrow">
+                                FINPILOT INTELLIGENCE
+                            </p>
+
+                            <h3>AI Financial Health</h3>
+                        </div>
+                    </div>
+
+                    <div class="health-score">
+                        <span>Status</span>
+
+                        <strong id="aiStatus">
+                            Loading...
+                        </strong>
+                    </div>
+
+                    <div class="ai-section">
+                        <h4>✦ Smart Insights</h4>
+
+                        <div id="aiInsights">
+                            <p class="loading-text">
+                                Analysing your spending...
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="ai-section">
+                        <h4>→ Recommendations</h4>
+
+                        <div id="aiRecommendations">
+                            <p class="loading-text">
+                                Preparing recommendations...
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section class="panel transactions-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <p class="eyebrow">ACTIVITY</p>
+                        <h3>Recent Transactions</h3>
+                    </div>
+
+                    <input
+                        id="transactionSearch"
+                        class="search-input"
+                        type="text"
+                        placeholder="Search transactions..."
+                    >
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="transactionTable">
+                            <tr>
+                                <td colspan="4" class="empty">
+                                    Loading transactions...
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- TRANSACTIONS VIEW -->
+        <section id="transactionsView" hidden>
+
+            <header>
+
+                <div>
+                    <p class="eyebrow">
+                        EXPENSE MANAGEMENT
+                    </p>
+
+                    <h1>All Transactions</h1>
+
+                    <p class="subtitle">
+                        Search, filter, edit, or delete your expenses.
+                    </p>
+                </div>
+
+                <div class="header-actions">
+
+                    <button
+                        id="transactionsRefreshBtn"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        ↻ Refresh
+                    </button>
+
+                    <button
+                        id="transactionsAddExpenseBtn"
+                        class="primary-btn"
+                        type="button"
+                    >
+                        + Add Expense
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <section class="panel transactions-panel">
+
+                <div class="transactions-toolbar">
+
+                    <input
+                        id="transactionsSearch"
+                        class="search-input"
+                        type="text"
+                        placeholder="Search category or description..."
+                    >
+
+                    <select id="categoryFilter">
+                        <option value="">
+                            All categories
+                        </option>
+
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Entertainment">
+                            Entertainment
+                        </option>
+                        <option value="Bills">Bills</option>
+                        <option value="Health">Health</option>
+                        <option value="Education">Education</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                    <select id="transactionSort">
+                        <option value="date-desc">
+                            Newest first
+                        </option>
+
+                        <option value="date-asc">
+                            Oldest first
+                        </option>
+
+                        <option value="amount-desc">
+                            Highest amount
+                        </option>
+
+                        <option value="amount-asc">
+                            Lowest amount
+                        </option>
+                    </select>
+
+                </div>
+
+                <p
+                    id="transactionsResultCount"
+                    class="transactions-result-count"
                 >
+                    Loading transactions...
+                </p>
 
-            </div>
+                <div class="table-wrapper">
 
+                    <table>
 
-            <div class="table-wrapper">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
-                <table>
+                        <tbody id="allTransactionsTable">
+                            <tr>
+                                <td colspan="5" class="empty">
+                                    Loading transactions...
+                                </td>
+                            </tr>
+                        </tbody>
 
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
+                    </table>
 
-                    <tbody id="transactionTable">
+                </div>
 
-                        <tr>
-                            <td colspan="4" class="empty">
-                                Loading transactions...
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
+            </section>
 
         </section>
 
@@ -273,7 +434,7 @@
 </div>
 
 
-<!-- ADD EXPENSE MODAL -->
+<!-- ADD / EDIT EXPENSE MODAL -->
 <div id="expenseModal" class="modal">
 
     <div class="modal-card">
@@ -281,11 +442,24 @@
         <div class="modal-header">
 
             <div>
-                <p class="eyebrow">NEW TRANSACTION</p>
-                <h2>Add Expense</h2>
+                <p
+                    id="expenseModalEyebrow"
+                    class="eyebrow"
+                >
+                    NEW TRANSACTION
+                </p>
+
+                <h2 id="expenseModalTitle">
+                    Add Expense
+                </h2>
             </div>
 
-            <button id="closeModal" class="close-btn">
+            <button
+                id="closeModal"
+                class="close-btn"
+                type="button"
+                aria-label="Close expense form"
+            >
                 ×
             </button>
 
@@ -296,6 +470,7 @@
 
             <label>
                 Amount
+
                 <input
                     id="expenseAmount"
                     type="number"
@@ -306,50 +481,26 @@
                 >
             </label>
 
-
             <label>
                 Category
 
                 <select id="expenseCategory" required>
-
-                    <option value="">Select category</option>
-
-                    <option value="Food">
-                        Food
+                    <option value="">
+                        Select category
                     </option>
 
-                    <option value="Transport">
-                        Transport
-                    </option>
-
-                    <option value="Shopping">
-                        Shopping
-                    </option>
-
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Shopping">Shopping</option>
                     <option value="Entertainment">
                         Entertainment
                     </option>
-
-                    <option value="Bills">
-                        Bills
-                    </option>
-
-                    <option value="Health">
-                        Health
-                    </option>
-
-                    <option value="Education">
-                        Education
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
-
+                    <option value="Bills">Bills</option>
+                    <option value="Health">Health</option>
+                    <option value="Education">Education</option>
+                    <option value="Other">Other</option>
                 </select>
-
             </label>
-
 
             <label>
                 Description
@@ -359,9 +510,7 @@
                     type="text"
                     placeholder="What did you spend on?"
                 >
-
             </label>
-
 
             <label>
                 Date
@@ -371,11 +520,10 @@
                     type="date"
                     required
                 >
-
             </label>
 
-
             <button
+                id="expenseSubmitBtn"
                 type="submit"
                 class="primary-btn submit-btn"
             >
@@ -389,7 +537,7 @@
 </div>
 
 
-<script src="app.js"></script>
+<script src="app.js?v=5"></script>
 
 </body>
 </html>

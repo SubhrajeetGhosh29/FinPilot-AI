@@ -3,31 +3,60 @@ const USER_ID = 2;
 
 let expenseChart = null;
 let allExpenses = [];
-
-let currentSort = {
-    field: "expense_date",
-    direction: "desc"
-};
+let editingExpenseId = null;
 
 
 /* =========================================================
    DOM ELEMENTS
 ========================================================= */
 
-const userName = document.getElementById("userName");
-const totalExpenses = document.getElementById("totalExpenses");
-const transactionCount = document.getElementById("transactionCount");
-const averageExpense = document.getElementById("averageExpense");
-const riskLevel = document.getElementById("riskLevel");
-const financialStatus = document.getElementById("financialStatus");
-const aiStatus = document.getElementById("aiStatus");
-const aiInsights = document.getElementById("aiInsights");
-const aiRecommendations = document.getElementById("aiRecommendations");
+const dashboardView =
+    document.getElementById("dashboardView");
+
+const transactionsView =
+    document.getElementById("transactionsView");
+
+const dashboardNav =
+    document.getElementById("dashboardNav");
+
+const transactionsNav =
+    document.getElementById("transactionsNav");
+
+const userName =
+    document.getElementById("userName");
+
+const totalExpenses =
+    document.getElementById("totalExpenses");
+
+const transactionCount =
+    document.getElementById("transactionCount");
+
+const averageExpense =
+    document.getElementById("averageExpense");
+
+const riskLevel =
+    document.getElementById("riskLevel");
+
+const financialStatus =
+    document.getElementById("financialStatus");
+
+const aiStatus =
+    document.getElementById("aiStatus");
+
+const aiInsights =
+    document.getElementById("aiInsights");
+
+const aiRecommendations =
+    document.getElementById("aiRecommendations");
+
 const highestCategoryBadge =
     document.getElementById("highestCategoryBadge");
 
 const transactionTable =
     document.getElementById("transactionTable");
+
+const allTransactionsTable =
+    document.getElementById("allTransactionsTable");
 
 const statusMessage =
     document.getElementById("statusMessage");
@@ -50,17 +79,48 @@ const expenseDescription =
 const expenseDate =
     document.getElementById("expenseDate");
 
+const expenseModalEyebrow =
+    document.getElementById("expenseModalEyebrow");
+
+const expenseModalTitle =
+    document.getElementById("expenseModalTitle");
+
+const expenseSubmitBtn =
+    document.getElementById("expenseSubmitBtn");
+
 const refreshBtn =
     document.getElementById("refreshBtn");
+
+const transactionsRefreshBtn =
+    document.getElementById("transactionsRefreshBtn");
 
 const addExpenseBtn =
     document.getElementById("addExpenseBtn");
 
+const transactionsAddExpenseBtn =
+    document.getElementById(
+        "transactionsAddExpenseBtn"
+    );
+
 const closeModalBtn =
     document.getElementById("closeModal");
 
-const searchInput =
+const dashboardSearch =
     document.getElementById("transactionSearch");
+
+const transactionsSearch =
+    document.getElementById("transactionsSearch");
+
+const categoryFilter =
+    document.getElementById("categoryFilter");
+
+const transactionSort =
+    document.getElementById("transactionSort");
+
+const transactionsResultCount =
+    document.getElementById(
+        "transactionsResultCount"
+    );
 
 const themeToggle =
     document.getElementById("themeToggle");
@@ -71,7 +131,6 @@ const themeToggle =
 ========================================================= */
 
 function money(value) {
-
     return new Intl.NumberFormat(
         "en-IN",
         {
@@ -80,12 +139,10 @@ function money(value) {
             maximumFractionDigits: 2
         }
     ).format(Number(value || 0));
-
 }
 
 
 function escapeHTML(value) {
-
     if (value === null || value === undefined) {
         return "";
     }
@@ -99,13 +156,48 @@ function escapeHTML(value) {
 }
 
 
-function showToast(message, type = "success") {
+function formatDate(date) {
+    if (!date) return "-";
 
-    const existing =
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return date;
+    }
+
+    return parsed.toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+}
+
+
+function getToday() {
+    return new Date()
+        .toISOString()
+        .split("T")[0];
+}
+
+
+function getCategoryClass(category) {
+    const normalized = String(category || "Other")
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+
+    return `category-${normalized}`;
+}
+
+
+function showToast(message, type = "success") {
+    const oldToast =
         document.querySelector(".toast");
 
-    if (existing) {
-        existing.remove();
+    if (oldToast) {
+        oldToast.remove();
     }
 
     const toast =
@@ -129,23 +221,19 @@ function showToast(message, type = "success") {
     });
 
     setTimeout(() => {
-
         toast.classList.remove("show");
 
         setTimeout(() => {
             toast.remove();
         }, 300);
-
     }, 3000);
 }
 
 
 function setLoading(button, loading, text) {
-
     if (!button) return;
 
     if (loading) {
-
         button.dataset.originalText =
             button.innerHTML;
 
@@ -156,13 +244,14 @@ function setLoading(button, loading, text) {
             ${text}
         `;
 
-    } else {
+        return;
+    }
 
-        button.disabled = false;
+    button.disabled = false;
 
+    if (button.dataset.originalText) {
         button.innerHTML =
-            button.dataset.originalText ||
-            "Refresh";
+            button.dataset.originalText;
     }
 }
 
@@ -172,36 +261,28 @@ function animateNumber(
     target,
     formatter = value => value
 ) {
-
     if (!element) return;
 
     const numericTarget =
         Number(target || 0);
 
-    const duration = 700;
-
     const startTime =
         performance.now();
 
-    const startValue = 0;
+    const duration = 650;
 
     function update(currentTime) {
-
-        const progress =
-            Math.min(
-                (currentTime - startTime) / duration,
-                1
-            );
+        const progress = Math.min(
+            (currentTime - startTime) / duration,
+            1
+        );
 
         const eased =
             1 - Math.pow(1 - progress, 3);
 
-        const value =
-            startValue +
-            (numericTarget - startValue) * eased;
-
-        element.textContent =
-            formatter(value);
+        element.textContent = formatter(
+            numericTarget * eased
+        );
 
         if (progress < 1) {
             requestAnimationFrame(update);
@@ -212,167 +293,104 @@ function animateNumber(
 }
 
 
-function formatMoneyAnimated(value) {
-
-    return money(
-        Math.round(value * 100) / 100
-    );
-}
-
-
-function getCategoryClass(category) {
-
-    const normalized =
-        String(category || "Other")
-            .toLowerCase()
-            .replace(/\s+/g, "-");
-
-    return `category-${normalized}`;
-}
-
-
-function formatDate(date) {
-
-    if (!date) return "-";
-
-    const parsed =
-        new Date(date);
-
-    if (Number.isNaN(parsed.getTime())) {
-        return date;
-    }
-
-    return parsed.toLocaleDateString(
-        "en-IN",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
-}
-
-
 /* =========================================================
-   DASHBOARD
+   DATA LOADING
 ========================================================= */
 
 async function loadDashboard() {
-
     setLoading(
         refreshBtn,
         true,
         "Updating..."
     );
 
-    try {
+    setLoading(
+        transactionsRefreshBtn,
+        true,
+        "Updating..."
+    );
 
-        statusMessage.innerHTML = "";
+    try {
+        if (statusMessage) {
+            statusMessage.innerHTML = "";
+        }
 
         const [
             userResponse,
             insightsResponse,
             expensesResponse
         ] = await Promise.all([
-
             fetch(
                 `${API_BASE}/users/${USER_ID}`
             ),
-
             fetch(
                 `${API_BASE}/insights/user/${USER_ID}`
             ),
-
             fetch(
                 `${API_BASE}/expenses/`
             )
-
         ]);
 
-
         if (!userResponse.ok) {
-
             throw new Error(
-                "Could not load user."
+                "Could not load user information."
             );
-
         }
 
-
         if (!insightsResponse.ok) {
-
             throw new Error(
                 "Could not load financial insights."
             );
-
         }
 
-
         if (!expensesResponse.ok) {
-
             throw new Error(
                 "Could not load expenses."
             );
-
         }
-
 
         const user =
             await userResponse.json();
 
-        const data =
+        const insights =
             await insightsResponse.json();
 
         const expenses =
             await expensesResponse.json();
 
+        allExpenses = Array.isArray(expenses)
+            ? expenses.filter(
+                expense =>
+                    Number(expense.user_id) === USER_ID
+            )
+            : [];
 
         renderUser(user);
-
-        renderSummary(data);
-
-        renderAI(data);
-
-        renderChart(data);
-
-
-        allExpenses =
-            Array.isArray(expenses)
-                ? expenses.filter(
-                    expense =>
-                        Number(expense.user_id) ===
-                        USER_ID
-                )
-                : [];
-
-
-        renderTransactions(
-            allExpenses
-        );
-
+        renderSummary(insights);
+        renderAI(insights);
+        renderChart(insights);
+        renderRecentTransactions(allExpenses);
+        renderAllTransactions();
 
     } catch (error) {
-
         console.error(error);
 
-        statusMessage.innerHTML = `
-            <div class="status-error">
+        if (statusMessage) {
+            statusMessage.innerHTML = `
+                <div class="status-error">
+                    <strong>Connection problem</strong>
 
-                <strong>
-                    Connection problem
-                </strong>
+                    <span>
+                        ${escapeHTML(error.message)}
+                    </span>
 
-                <span>
-                    ${escapeHTML(error.message)}
-                </span>
-
-                <small>
-                    Make sure the FinPilot backend
-                    is running on port 8000.
-                </small>
-
-            </div>
-        `;
+                    <small>
+                        Make sure the FinPilot backend
+                        is running on port 8000.
+                    </small>
+                </div>
+            `;
+        }
 
         showToast(
             "Unable to update dashboard.",
@@ -380,22 +398,17 @@ async function loadDashboard() {
         );
 
     } finally {
-
-        setLoading(
-            refreshBtn,
-            false
-        );
-
+        setLoading(refreshBtn, false);
+        setLoading(transactionsRefreshBtn, false);
     }
 }
 
 
 /* =========================================================
-   USER
+   DASHBOARD
 ========================================================= */
 
 function renderUser(user) {
-
     if (!userName) return;
 
     userName.textContent =
@@ -403,18 +416,14 @@ function renderUser(user) {
 }
 
 
-/* =========================================================
-   SUMMARY
-========================================================= */
-
 function renderSummary(data) {
-
     animateNumber(
         totalExpenses,
         data.total_expenses,
-        formatMoneyAnimated
+        value => money(
+            Math.round(value * 100) / 100
+        )
     );
-
 
     animateNumber(
         transactionCount,
@@ -422,184 +431,131 @@ function renderSummary(data) {
         value => Math.round(value)
     );
 
-
     animateNumber(
         averageExpense,
         data.average_expense,
-        formatMoneyAnimated
+        value => money(
+            Math.round(value * 100) / 100
+        )
     );
-
 
     const ai =
         data.ai_analysis || {};
-
 
     const risk =
         ai.risk_level ||
         data.risk_level ||
         "--";
 
+    if (riskLevel) {
+        riskLevel.textContent =
+            String(risk).toUpperCase();
 
-    riskLevel.textContent =
-        String(risk).toUpperCase();
-
-
-    financialStatus.textContent =
-        `Financial status: ${
-            data.financial_status || "--"
-        }`;
-
-
-    if (data.highest_category) {
-
-        highestCategoryBadge.textContent =
-            `${data.highest_category} • ${
-                data.highest_category_percentage
-            }%`;
-
-    } else {
-
-        highestCategoryBadge.textContent =
-            "No spending data";
-
-    }
-
-
-    updateRiskAppearance(risk);
-}
-
-
-/* =========================================================
-   RISK APPEARANCE
-========================================================= */
-
-function updateRiskAppearance(risk) {
-
-    const normalized =
-        String(risk || "")
-            .toLowerCase();
-
-    riskLevel.classList.remove(
-        "risk-low",
-        "risk-medium",
-        "risk-high"
-    );
-
-
-    if (
-        normalized.includes("low") ||
-        normalized.includes("healthy")
-    ) {
-
-        riskLevel.classList.add(
-            "risk-low"
-        );
-
-    } else if (
-        normalized.includes("medium") ||
-        normalized.includes("moderate")
-    ) {
-
-        riskLevel.classList.add(
-            "risk-medium"
-        );
-
-    } else if (
-        normalized.includes("high") ||
-        normalized.includes("critical")
-    ) {
-
-        riskLevel.classList.add(
+        riskLevel.classList.remove(
+            "risk-low",
+            "risk-medium",
             "risk-high"
         );
 
+        const normalized =
+            String(risk).toLowerCase();
+
+        if (
+            normalized.includes("low") ||
+            normalized.includes("healthy")
+        ) {
+            riskLevel.classList.add("risk-low");
+
+        } else if (
+            normalized.includes("medium") ||
+            normalized.includes("moderate")
+        ) {
+            riskLevel.classList.add("risk-medium");
+
+        } else if (
+            normalized.includes("high") ||
+            normalized.includes("critical")
+        ) {
+            riskLevel.classList.add("risk-high");
+        }
+    }
+
+    if (financialStatus) {
+        financialStatus.textContent =
+            `Financial status: ${
+                data.financial_status || "--"
+            }`;
+    }
+
+    if (highestCategoryBadge) {
+        if (data.highest_category) {
+            highestCategoryBadge.textContent =
+                `${data.highest_category} • ${
+                    data.highest_category_percentage
+                }%`;
+        } else {
+            highestCategoryBadge.textContent =
+                "No spending data";
+        }
     }
 }
 
 
-/* =========================================================
-   AI ANALYSIS
-========================================================= */
-
 function renderAI(data) {
-
     const ai =
         data.ai_analysis || {};
-
 
     const insights =
         ai.insights ||
         data.insights ||
         [];
 
-
     const recommendations =
         ai.recommendations ||
         data.recommendations ||
         [];
-
 
     const status =
         ai.financial_status ||
         data.financial_status ||
         "Unavailable";
 
+    if (aiStatus) {
+        aiStatus.textContent =
+            String(status).toUpperCase();
 
-    aiStatus.textContent =
-        String(status).toUpperCase();
-
-
-    aiStatus.classList.remove(
-        "ai-healthy",
-        "ai-warning",
-        "ai-danger"
-    );
-
-
-    const normalized =
-        String(status).toLowerCase();
-
-
-    if (
-        normalized.includes("healthy") ||
-        normalized.includes("stable")
-    ) {
-
-        aiStatus.classList.add(
-            "ai-healthy"
-        );
-
-    } else if (
-        normalized.includes("attention") ||
-        normalized.includes("moderate")
-    ) {
-
-        aiStatus.classList.add(
-            "ai-warning"
-        );
-
-    } else {
-
-        aiStatus.classList.add(
+        aiStatus.classList.remove(
+            "ai-healthy",
+            "ai-warning",
             "ai-danger"
         );
 
+        const normalized =
+            String(status).toLowerCase();
+
+        if (
+            normalized.includes("healthy") ||
+            normalized.includes("stable")
+        ) {
+            aiStatus.classList.add("ai-healthy");
+
+        } else if (
+            normalized.includes("attention") ||
+            normalized.includes("moderate")
+        ) {
+            aiStatus.classList.add("ai-warning");
+
+        } else {
+            aiStatus.classList.add("ai-danger");
+        }
     }
 
-
-    /* -----------------------------------------------------
-       INSIGHTS
-    ----------------------------------------------------- */
-
-    aiInsights.innerHTML =
-        insights.length
-
+    if (aiInsights) {
+        aiInsights.innerHTML = insights.length
             ? insights
                 .map(
                     (item, index) => `
-
                         <div class="insight-item">
-
                             <span class="insight-number">
                                 ${index + 1}
                             </span>
@@ -607,1079 +563,861 @@ function renderAI(data) {
                             <span>
                                 ${escapeHTML(item)}
                             </span>
-
                         </div>
-
                     `
                 )
                 .join("")
-
             : `
                 <p class="loading-text">
                     No insights available.
                 </p>
             `;
+    }
 
+    if (aiRecommendations) {
+        aiRecommendations.innerHTML =
+            recommendations.length
+                ? recommendations
+                    .map(
+                        item => `
+                            <div
+                                class="insight-item recommendation"
+                            >
+                                <span
+                                    class="recommendation-icon"
+                                >
+                                    ✓
+                                </span>
 
-    /* -----------------------------------------------------
-       RECOMMENDATIONS
-    ----------------------------------------------------- */
-
-    aiRecommendations.innerHTML =
-        recommendations.length
-
-            ? recommendations
-                .map(
-                    item => `
-
-                        <div class="insight-item recommendation">
-
-                            <span class="recommendation-icon">
-                                ✓
-                            </span>
-
-                            <span>
-                                ${escapeHTML(item)}
-                            </span>
-
-                        </div>
-
-                    `
-                )
-                .join("")
-
-            : `
-                <p class="loading-text">
-                    No recommendations available.
-                </p>
-            `;
+                                <span>
+                                    ${escapeHTML(item)}
+                                </span>
+                            </div>
+                        `
+                    )
+                    .join("")
+                : `
+                    <p class="loading-text">
+                        No recommendations available.
+                    </p>
+                `;
+    }
 }
 
 
-/* =========================================================
-   CHART
-   FIXED VERSION
-========================================================= */
-
 function renderChart(data) {
-
     const breakdown =
         data.category_breakdown || {};
-
 
     const labels =
         Object.keys(breakdown);
 
-
     const values =
         Object.values(breakdown);
 
-
     const canvas =
-        document.getElementById(
-            "expenseChart"
-        );
-
+        document.getElementById("expenseChart");
 
     if (!canvas) return;
 
-
-    /* -----------------------------------------------------
-       Destroy previous Chart.js instance
-    ----------------------------------------------------- */
-
     if (expenseChart) {
-
         expenseChart.destroy();
-
         expenseChart = null;
     }
 
-
-    /* -----------------------------------------------------
-       No data
-    ----------------------------------------------------- */
-
-    if (
-        !labels.length ||
-        !values.length
-    ) {
-
+    if (!labels.length || !values.length) {
         return;
     }
 
-
-    /* -----------------------------------------------------
-       Get current theme text color
-    ----------------------------------------------------- */
-
     const textColor =
-        getComputedStyle(
-            document.body
-        )
+        getComputedStyle(document.body)
             .getPropertyValue("--text")
             .trim();
 
+    expenseChart = new Chart(
+        canvas,
+        {
+            type: "doughnut",
 
-    /* -----------------------------------------------------
-       Create chart
-    ----------------------------------------------------- */
+            data: {
+                labels: labels,
 
-    expenseChart =
-        new Chart(
-            canvas,
-            {
+                datasets: [
+                    {
+                        data: values,
 
-                type: "doughnut",
+                        backgroundColor: [
+                            "#635bff",
+                            "#22c55e",
+                            "#f59e0b",
+                            "#ec4899",
+                            "#06b6d4",
+                            "#8b5cf6",
+                            "#ef4444",
+                            "#64748b"
+                        ],
 
-                data: {
+                        borderWidth: 0,
+                        hoverOffset: 8,
+                        radius: "78%"
+                    }
+                ]
+            },
 
-                    labels: labels,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "68%",
 
-                    datasets: [
-                        {
-
-                            data: values,
-
-                            backgroundColor: [
-
-                                "#635bff",
-                                "#22c55e",
-                                "#f59e0b",
-                                "#ec4899",
-                                "#06b6d4",
-                                "#8b5cf6",
-                                "#ef4444",
-                                "#64748b"
-
-                            ],
-
-                            borderWidth: 0,
-
-                            /*
-                             * Reduced from 14 to 8.
-                             * Prevents the chart from jumping
-                             * outside the container on hover.
-                             */
-                            hoverOffset: 8,
-
-                            /*
-                             * Limits the maximum doughnut size.
-                             * This is one of the important fixes
-                             * for the clipping issue.
-                             */
-                            radius: "78%"
-                        }
-                    ]
+                layout: {
+                    padding: {
+                        top: 20,
+                        right: 20,
+                        bottom: 5,
+                        left: 20
+                    }
                 },
 
+                plugins: {
+                    legend: {
+                        position: "bottom",
 
-                options: {
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "circle",
+                            padding: 18,
+                            boxWidth: 9,
+                            boxHeight: 9,
+                            color: textColor,
 
-                    responsive: true,
-
-
-                    /*
-                     * IMPORTANT
-                     *
-                     * Allows the chart to use the dimensions
-                     * supplied by .chart-container.
-                     */
-                    maintainAspectRatio: false,
-
-
-                    /*
-                     * Slightly smaller inner hole.
-                     */
-                    cutout: "68%",
-
-
-                    /*
-                     * Gives the chart breathing room.
-                     *
-                     * Especially important at the top,
-                     * where your screenshot showed clipping.
-                     */
-                    layout: {
-
-                        padding: {
-
-                            top: 20,
-                            right: 20,
-                            bottom: 5,
-                            left: 20
-
-                        }
-
-                    },
-
-
-                    /* -------------------------------------------------
-                       Animation
-                    ------------------------------------------------- */
-
-                    animation: {
-
-                        duration: 900,
-
-                        easing: "easeOutQuart"
-
-                    },
-
-
-                    /* -------------------------------------------------
-                       Interaction
-                    ------------------------------------------------- */
-
-                    interaction: {
-
-                        mode: "nearest",
-
-                        intersect: true
-
-                    },
-
-
-                    /* -------------------------------------------------
-                       Plugins
-                    ------------------------------------------------- */
-
-                    plugins: {
-
-                        /* ---------------------------------------------
-                           LEGEND
-                        --------------------------------------------- */
-
-                        legend: {
-
-                            position: "bottom",
-
-                            labels: {
-
-                                usePointStyle: true,
-
-                                pointStyle: "circle",
-
-                                padding: 18,
-
-                                boxWidth: 9,
-
-                                boxHeight: 9,
-
-                                color: textColor,
-
-                                font: {
-
-                                    size: 12,
-
-                                    weight: "500"
-
-                                }
-
+                            font: {
+                                size: 12,
+                                weight: "500"
                             }
-
-                        },
-
-
-                        /* ---------------------------------------------
-                           TOOLTIP
-                        --------------------------------------------- */
-
-                        tooltip: {
-
-                            enabled: true,
-
-                            backgroundColor:
-                                "rgba(15, 23, 42, 0.96)",
-
-                            padding: 12,
-
-                            cornerRadius: 10,
-
-                            displayColors: true,
-
-                            callbacks: {
-
-                                label(context) {
-
-                                    return (
-                                        `${context.label}: ` +
-                                        money(context.raw)
-                                    );
-
-                                }
-
-                            }
-
                         }
+                    },
 
+                    tooltip: {
+                        backgroundColor:
+                            "rgba(15, 23, 42, 0.96)",
+
+                        padding: 12,
+                        cornerRadius: 10,
+
+                        callbacks: {
+                            label(context) {
+                                return (
+                                    `${context.label}: ` +
+                                    money(context.raw)
+                                );
+                            }
+                        }
                     }
-
                 }
-
             }
-        );
+        }
+    );
 }
 
 
 /* =========================================================
-   TRANSACTIONS
+   RECENT TRANSACTIONS
 ========================================================= */
 
-function renderTransactions(
-    expenses,
-    animate = true
-) {
+function renderRecentTransactions(expenses) {
+    if (!transactionTable) return;
 
-    if (!expenses.length) {
+    const sorted = [...expenses].sort(
+        (first, second) =>
+            new Date(second.expense_date) -
+            new Date(first.expense_date)
+    );
 
+    if (!sorted.length) {
         transactionTable.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="4"
-                    class="empty"
-                >
-
-                    <div class="empty-state">
-
-                        <span class="empty-icon">
-                            ⌁
-                        </span>
-
-                        <strong>
-                            No transactions found
-                        </strong>
-
-                        <small>
-                            Add your first expense to
-                            start tracking your finances.
-                        </small>
-
-                    </div>
-
+                <td colspan="4" class="empty">
+                    No transactions found.
                 </td>
-
             </tr>
-
         `;
 
         return;
     }
 
-
-    const sorted =
-        [...expenses].sort(
-            (a, b) => {
-
-                let first;
-                let second;
-
-
-                if (
-                    currentSort.field ===
-                    "amount"
-                ) {
-
-                    first =
-                        Number(
-                            a.amount || 0
-                        );
-
-                    second =
-                        Number(
-                            b.amount || 0
-                        );
-
-                } else {
-
-                    first =
-                        new Date(
-                            a.expense_date
-                        ).getTime();
-
-                    second =
-                        new Date(
-                            b.expense_date
-                        ).getTime();
-
-                }
-
-
-                return currentSort.direction ===
-                    "asc"
-
-                    ? first - second
-
-                    : second - first;
-            }
-        );
-
-
-    transactionTable.innerHTML =
-        sorted
-            .map(
-                (expense, index) => `
-
-                    <tr
-                        class="${
-                            animate
-                                ? "transaction-row"
-                                : ""
-                        }"
-
-                        style="
-                            animation-delay:
-                            ${index * 35}ms;
-                        "
-                    >
-
-                        <td>
-
-                            <span
-                                class="
-                                    category-pill
-                                    ${getCategoryClass(
-                                        expense.category
-                                    )}
-                                "
-                            >
-
-                                ${escapeHTML(
-                                    expense.category ||
-                                    "Other"
+    transactionTable.innerHTML = sorted
+        .map(
+            expense => `
+                <tr>
+                    <td>
+                        <span
+                            class="
+                                category-pill
+                                ${getCategoryClass(
+                                    expense.category
                                 )}
-
-                            </span>
-
-                        </td>
-
-
-                        <td>
-
-                            <div class="transaction-description">
-
-                                <strong>
-
-                                    ${escapeHTML(
-                                        expense.description ||
-                                        "Untitled expense"
-                                    )}
-
-                                </strong>
-
-                            </div>
-
-                        </td>
-
-
-                        <td>
-
-                            <span class="date-text">
-
-                                ${formatDate(
-                                    expense.expense_date
-                                )}
-
-                            </span>
-
-                        </td>
-
-
-                        <td class="amount">
-
-                            ${money(
-                                expense.amount
+                            "
+                        >
+                            ${escapeHTML(
+                                expense.category || "Other"
                             )}
+                        </span>
+                    </td>
 
-                        </td>
+                    <td>
+                        <div class="transaction-description">
+                            <strong>
+                                ${escapeHTML(
+                                    expense.description ||
+                                    "Untitled expense"
+                                )}
+                            </strong>
+                        </div>
+                    </td>
 
-                    </tr>
+                    <td>
+                        <span class="date-text">
+                            ${formatDate(
+                                expense.expense_date
+                            )}
+                        </span>
+                    </td>
 
-                `
-            )
-            .join("");
+                    <td class="amount">
+                        ${money(expense.amount)}
+                    </td>
+                </tr>
+            `
+        )
+        .join("");
 }
 
 
 /* =========================================================
-   SEARCH
+   TRANSACTIONS PAGE
 ========================================================= */
 
-if (searchInput) {
+function getFilteredTransactions() {
+    const search =
+        transactionsSearch?.value
+            .toLowerCase()
+            .trim() || "";
 
-    searchInput.addEventListener(
-        "input",
-        event => {
+    const category =
+        categoryFilter?.value || "";
 
-            const search =
-                event.target.value
+    const sort =
+        transactionSort?.value ||
+        "date-desc";
+
+    const filtered = allExpenses.filter(
+        expense => {
+            const matchesSearch =
+                String(expense.category || "")
                     .toLowerCase()
-                    .trim();
+                    .includes(search) ||
 
+                String(expense.description || "")
+                    .toLowerCase()
+                    .includes(search) ||
 
-            const filtered =
-                allExpenses.filter(
-                    expense => {
+                String(expense.amount || "")
+                    .toLowerCase()
+                    .includes(search);
 
-                        const category =
-                            String(
-                                expense.category || ""
-                            )
-                                .toLowerCase();
+            const matchesCategory =
+                !category ||
+                expense.category === category;
 
-
-                        const description =
-                            String(
-                                expense.description || ""
-                            )
-                                .toLowerCase();
-
-
-                        const date =
-                            String(
-                                expense.expense_date || ""
-                            )
-                                .toLowerCase();
-
-
-                        const amount =
-                            String(
-                                expense.amount || ""
-                            )
-                                .toLowerCase();
-
-
-                        return (
-
-                            category.includes(search) ||
-
-                            description.includes(search) ||
-
-                            date.includes(search) ||
-
-                            amount.includes(search)
-
-                        );
-
-                    }
-                );
-
-
-            renderTransactions(
-                filtered,
-                false
+            return (
+                matchesSearch &&
+                matchesCategory
             );
-
         }
     );
 
+    const [field, direction] =
+        sort.split("-");
+
+    return filtered.sort(
+        (first, second) => {
+            const firstValue =
+                field === "amount"
+                    ? Number(first.amount || 0)
+                    : new Date(
+                        first.expense_date
+                    ).getTime();
+
+            const secondValue =
+                field === "amount"
+                    ? Number(second.amount || 0)
+                    : new Date(
+                        second.expense_date
+                    ).getTime();
+
+            return direction === "asc"
+                ? firstValue - secondValue
+                : secondValue - firstValue;
+        }
+    );
+}
+
+
+function renderAllTransactions() {
+    if (!allTransactionsTable) return;
+
+    const expenses =
+        getFilteredTransactions();
+
+    if (transactionsResultCount) {
+        transactionsResultCount.textContent =
+            `${expenses.length} transaction${
+                expenses.length === 1 ? "" : "s"
+            } found`;
+    }
+
+    if (!expenses.length) {
+        allTransactionsTable.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty">
+                    No transactions match your filters.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    allTransactionsTable.innerHTML = expenses
+        .map(
+            expense => `
+                <tr>
+                    <td>
+                        <span
+                            class="
+                                category-pill
+                                ${getCategoryClass(
+                                    expense.category
+                                )}
+                            "
+                        >
+                            ${escapeHTML(
+                                expense.category || "Other"
+                            )}
+                        </span>
+                    </td>
+
+                    <td>
+                        <div class="transaction-description">
+                            <strong>
+                                ${escapeHTML(
+                                    expense.description ||
+                                    "Untitled expense"
+                                )}
+                            </strong>
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="date-text">
+                            ${formatDate(
+                                expense.expense_date
+                            )}
+                        </span>
+                    </td>
+
+                    <td class="amount">
+                        ${money(expense.amount)}
+                    </td>
+
+                    <td>
+                        <div class="transaction-actions">
+                            <button
+                                class="transaction-edit-btn"
+                                type="button"
+                                data-action="edit"
+                                data-expense-id="${expense.id}"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                class="transaction-delete-btn"
+                                type="button"
+                                data-action="delete"
+                                data-expense-id="${expense.id}"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `
+        )
+        .join("");
 }
 
 
 /* =========================================================
-   TABLE SORTING
+   PAGE NAVIGATION
 ========================================================= */
 
-document
-    .querySelectorAll("th")
-    .forEach(th => {
+function showDashboardView() {
+    if (dashboardView) {
+        dashboardView.hidden = false;
+    }
 
-        th.style.cursor = "pointer";
+    if (transactionsView) {
+        transactionsView.hidden = true;
+    }
 
-
-        th.addEventListener(
-            "click",
-            () => {
-
-                const text =
-                    th.textContent
-                        .trim()
-                        .toLowerCase();
+    dashboardNav?.classList.add("active");
+    transactionsNav?.classList.remove("active");
+}
 
 
-                if (
-                    text === "date"
-                ) {
+function showTransactionsView() {
+    if (dashboardView) {
+        dashboardView.hidden = true;
+    }
 
-                    currentSort.field =
-                        "expense_date";
+    if (transactionsView) {
+        transactionsView.hidden = false;
+    }
 
-                } else if (
-                    text === "amount"
-                ) {
+    dashboardNav?.classList.remove("active");
+    transactionsNav?.classList.add("active");
 
-                    currentSort.field =
-                        "amount";
-
-                } else {
-
-                    return;
-                }
-
-
-                currentSort.direction =
-                    currentSort.direction ===
-                    "asc"
-
-                        ? "desc"
-
-                        : "asc";
-
-
-                renderTransactions(
-                    allExpenses
-                );
-
-            }
-        );
-
-    });
+    renderAllTransactions();
+}
 
 
 /* =========================================================
-   MODAL
+   ADD AND EDIT EXPENSE
 ========================================================= */
 
-function openModal() {
-
+function openExpenseModal(expense = null) {
     if (!modal) return;
 
+    editingExpenseId =
+        expense ? expense.id : null;
+
+    if (expense) {
+        expenseModalEyebrow.textContent =
+            "EDIT TRANSACTION";
+
+        expenseModalTitle.textContent =
+            "Edit Expense";
+
+        expenseSubmitBtn.textContent =
+            "Save Changes";
+
+        expenseAmount.value =
+            expense.amount;
+
+        expenseCategory.value =
+            expense.category || "";
+
+        expenseDescription.value =
+            expense.description || "";
+
+        expenseDate.value =
+            String(expense.expense_date)
+                .split("T")[0];
+
+    } else {
+        expenseModalEyebrow.textContent =
+            "NEW TRANSACTION";
+
+        expenseModalTitle.textContent =
+            "Add Expense";
+
+        expenseSubmitBtn.textContent =
+            "Add Expense";
+
+        expenseForm.reset();
+
+        expenseDate.value = getToday();
+    }
 
     modal.classList.add("show");
 
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
+    document.body.classList.add("modal-open");
 
     setTimeout(() => {
-
         expenseAmount?.focus();
-
-    }, 150);
+    }, 100);
 }
 
 
 function closeModal() {
-
     if (!modal) return;
-
 
     modal.classList.remove("show");
 
+    document.body.classList.remove("modal-open");
 
-    document.body.classList.remove(
-        "modal-open"
-    );
+    editingExpenseId = null;
 }
 
 
-if (addExpenseBtn) {
+async function saveExpense(event) {
+    event.preventDefault();
 
-    addExpenseBtn.addEventListener(
-        "click",
-        openModal
+    const amount =
+        Number(expenseAmount.value);
+
+    if (!amount || amount <= 0) {
+        showToast(
+            "Please enter a valid amount.",
+            "error"
+        );
+
+        expenseAmount.focus();
+        return;
+    }
+
+    if (!expenseCategory.value) {
+        showToast(
+            "Please select a category.",
+            "error"
+        );
+
+        expenseCategory.focus();
+        return;
+    }
+
+    if (!expenseDate.value) {
+        showToast(
+            "Please select a date.",
+            "error"
+        );
+
+        expenseDate.focus();
+        return;
+    }
+
+    const isEditing =
+        editingExpenseId !== null;
+
+    const expense = {
+        amount: amount,
+        category: expenseCategory.value,
+        description:
+            expenseDescription.value.trim(),
+        expense_date: expenseDate.value
+    };
+
+    if (!isEditing) {
+        expense.user_id = USER_ID;
+    }
+
+    setLoading(
+        expenseSubmitBtn,
+        true,
+        isEditing ? "Saving..." : "Adding..."
     );
 
-}
+    try {
+        const response = await fetch(
+            isEditing
+                ? `${API_BASE}/expenses/${editingExpenseId}`
+                : `${API_BASE}/expenses/`,
+            {
+                method: isEditing ? "PUT" : "POST",
 
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-if (closeModalBtn) {
-
-    closeModalBtn.addEventListener(
-        "click",
-        closeModal
-    );
-
-}
-
-
-if (modal) {
-
-    modal.addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target === modal
-            ) {
-
-                closeModal();
-
+                body: JSON.stringify(expense)
             }
+        );
 
+        if (!response.ok) {
+            const errorText =
+                await response.text();
+
+            throw new Error(
+                errorText ||
+                "Could not save expense."
+            );
         }
-    );
 
+        closeModal();
+
+        showToast(
+            isEditing
+                ? "Expense updated successfully."
+                : "Expense added successfully."
+        );
+
+        await loadDashboard();
+
+    } catch (error) {
+        console.error(error);
+
+        showToast(
+            "Could not save expense.",
+            "error"
+        );
+
+    } finally {
+        setLoading(
+            expenseSubmitBtn,
+            false
+        );
+    }
 }
 
 
-/* ---------------------------------------------------------
-   ESCAPE KEY
---------------------------------------------------------- */
+async function deleteExpense(expenseId) {
+    const expense = allExpenses.find(
+        item =>
+            Number(item.id) ===
+            Number(expenseId)
+    );
+
+    const description =
+        expense?.description ||
+        "this expense";
+
+    const confirmed = window.confirm(
+        `Delete "${description}"? This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(
+            `${API_BASE}/expenses/${expenseId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            const errorText =
+                await response.text();
+
+            throw new Error(
+                errorText ||
+                "Could not delete expense."
+            );
+        }
+
+        showToast(
+            "Expense deleted successfully."
+        );
+
+        await loadDashboard();
+
+    } catch (error) {
+        console.error(error);
+
+        showToast(
+            "Could not delete expense.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   EVENT LISTENERS
+========================================================= */
+
+dashboardNav?.addEventListener(
+    "click",
+    showDashboardView
+);
+
+transactionsNav?.addEventListener(
+    "click",
+    showTransactionsView
+);
+
+refreshBtn?.addEventListener(
+    "click",
+    loadDashboard
+);
+
+transactionsRefreshBtn?.addEventListener(
+    "click",
+    loadDashboard
+);
+
+addExpenseBtn?.addEventListener(
+    "click",
+    () => openExpenseModal()
+);
+
+transactionsAddExpenseBtn?.addEventListener(
+    "click",
+    () => openExpenseModal()
+);
+
+closeModalBtn?.addEventListener(
+    "click",
+    closeModal
+);
+
+expenseForm?.addEventListener(
+    "submit",
+    saveExpense
+);
+
+modal?.addEventListener(
+    "click",
+    event => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+);
 
 document.addEventListener(
     "keydown",
     event => {
-
         if (
             event.key === "Escape" &&
-            modal &&
-            modal.classList.contains("show")
+            modal?.classList.contains("show")
         ) {
-
             closeModal();
+        }
+    }
+);
 
+dashboardSearch?.addEventListener(
+    "input",
+    event => {
+        const search =
+            event.target.value
+                .toLowerCase()
+                .trim();
+
+        const filtered = allExpenses.filter(
+            expense =>
+                String(expense.category || "")
+                    .toLowerCase()
+                    .includes(search) ||
+
+                String(expense.description || "")
+                    .toLowerCase()
+                    .includes(search) ||
+
+                String(expense.amount || "")
+                    .toLowerCase()
+                    .includes(search)
+        );
+
+        renderRecentTransactions(filtered);
+    }
+);
+
+transactionsSearch?.addEventListener(
+    "input",
+    renderAllTransactions
+);
+
+categoryFilter?.addEventListener(
+    "change",
+    renderAllTransactions
+);
+
+transactionSort?.addEventListener(
+    "change",
+    renderAllTransactions
+);
+
+allTransactionsTable?.addEventListener(
+    "click",
+    event => {
+        const button =
+            event.target.closest("button[data-action]");
+
+        if (!button) return;
+
+        const expenseId =
+            Number(button.dataset.expenseId);
+
+        const expense = allExpenses.find(
+            item =>
+                Number(item.id) === expenseId
+        );
+
+        if (!expense) {
+            showToast(
+                "Expense not found.",
+                "error"
+            );
+
+            return;
         }
 
+        if (button.dataset.action === "edit") {
+            openExpenseModal(expense);
+        }
+
+        if (button.dataset.action === "delete") {
+            deleteExpense(expenseId);
+        }
+    }
+);
+
+themeToggle?.addEventListener(
+    "click",
+    () => {
+        document.body.classList.toggle("dark");
+
+        const isDark =
+            document.body.classList.contains("dark");
+
+        themeToggle.innerHTML = isDark
+            ? "☀ Light Mode"
+            : "☾ Dark Mode";
+
+        localStorage.setItem(
+            "finpilot-theme",
+            isDark ? "dark" : "light"
+        );
+
+        if (expenseChart) {
+            const textColor =
+                getComputedStyle(document.body)
+                    .getPropertyValue("--text")
+                    .trim();
+
+            expenseChart.options
+                .plugins
+                .legend
+                .labels
+                .color = textColor;
+
+            expenseChart.update();
+        }
     }
 );
 
 
 /* =========================================================
-   ADD EXPENSE
-========================================================= */
-
-if (expenseForm) {
-
-    expenseForm.addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-
-            const amount =
-                Number(
-                    expenseAmount.value
-                );
-
-
-            if (
-                !amount ||
-                amount <= 0
-            ) {
-
-                showToast(
-                    "Please enter a valid amount.",
-                    "error"
-                );
-
-
-                expenseAmount.focus();
-
-
-                return;
-            }
-
-
-            if (!expenseCategory.value) {
-
-                showToast(
-                    "Please select a category.",
-                    "error"
-                );
-
-
-                expenseCategory.focus();
-
-
-                return;
-            }
-
-
-            if (!expenseDate.value) {
-
-                showToast(
-                    "Please select a date.",
-                    "error"
-                );
-
-
-                expenseDate.focus();
-
-
-                return;
-            }
-
-
-            const expense = {
-
-                amount: amount,
-
-                category:
-                    expenseCategory.value,
-
-                description:
-                    expenseDescription.value
-                        .trim(),
-
-                expense_date:
-                    expenseDate.value,
-
-                user_id:
-                    USER_ID
-
-            };
-
-
-            const submitButton =
-                expenseForm.querySelector(
-                    "button[type='submit']"
-                );
-
-
-            setLoading(
-                submitButton,
-                true,
-                "Adding..."
-            );
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        `${API_BASE}/expenses/`,
-                        {
-
-                            method: "POST",
-
-                            headers: {
-
-                                "Content-Type":
-                                    "application/json"
-
-                            },
-
-                            body:
-                                JSON.stringify(
-                                    expense
-                                )
-
-                        }
-                    );
-
-
-                if (!response.ok) {
-
-                    const error =
-                        await response.text();
-
-
-                    throw new Error(
-                        error ||
-                        "Failed to add expense."
-                    );
-
-                }
-
-
-                closeModal();
-
-
-                expenseForm.reset();
-
-
-                expenseDate.value =
-                    new Date()
-                        .toISOString()
-                        .split("T")[0];
-
-
-                showToast(
-                    "Expense added successfully."
-                );
-
-
-                await loadDashboard();
-
-
-            } catch (error) {
-
-                console.error(error);
-
-
-                showToast(
-                    "Could not add expense.",
-                    "error"
-                );
-
-            } finally {
-
-                setLoading(
-                    submitButton,
-                    false
-                );
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   REFRESH
-========================================================= */
-
-if (refreshBtn) {
-
-    refreshBtn.addEventListener(
-        "click",
-        loadDashboard
-    );
-
-}
-
-
-/* =========================================================
-   DARK MODE
-========================================================= */
-
-if (themeToggle) {
-
-    themeToggle.addEventListener(
-        "click",
-        () => {
-
-            document.body.classList.toggle(
-                "dark"
-            );
-
-
-            const dark =
-                document.body.classList.contains(
-                    "dark"
-                );
-
-
-            themeToggle.innerHTML =
-                dark
-                    ? "☀ Light Mode"
-                    : "☾ Dark Mode";
-
-
-            localStorage.setItem(
-                "finpilot-theme",
-                dark
-                    ? "dark"
-                    : "light"
-            );
-
-
-            /* -------------------------------------------------
-               Update chart legend after theme change
-            ------------------------------------------------- */
-
-            if (expenseChart) {
-
-                const textColor =
-                    getComputedStyle(
-                        document.body
-                    )
-                        .getPropertyValue(
-                            "--text"
-                        )
-                        .trim();
-
-
-                expenseChart.options
-                    .plugins
-                    .legend
-                    .labels
-                    .color =
-                    textColor;
-
-
-                expenseChart.update();
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   LOAD SAVED THEME
+   INITIAL LOAD
 ========================================================= */
 
 if (
-    localStorage.getItem(
-        "finpilot-theme"
-    ) === "dark"
+    localStorage.getItem("finpilot-theme") ===
+    "dark"
 ) {
-
-    document.body.classList.add(
-        "dark"
-    );
-
+    document.body.classList.add("dark");
 
     if (themeToggle) {
-
         themeToggle.innerHTML =
             "☀ Light Mode";
-
     }
-
 }
-
-
-/* =========================================================
-   DEFAULT DATE
-========================================================= */
 
 if (expenseDate) {
-
-    expenseDate.value =
-        new Date()
-            .toISOString()
-            .split("T")[0];
-
+    expenseDate.value = getToday();
 }
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-document
-    .querySelectorAll(".nav-item")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                document
-                    .querySelectorAll(
-                        ".nav-item"
-                    )
-                    .forEach(item =>
-                        item.classList.remove(
-                            "active"
-                        )
-                    );
-
-
-                button.classList.add(
-                    "active"
-                );
-
-            }
-        );
-
-    });
-
-
-/* =========================================================
-   INITIAL LOAD
-========================================================= */
 
 loadDashboard();

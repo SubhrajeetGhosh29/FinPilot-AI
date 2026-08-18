@@ -11,6 +11,13 @@ class ExpenseCreate(BaseModel):
     user_id: int
 
 
+class ExpenseUpdate(BaseModel):
+    amount: float
+    category: str
+    description: Optional[str] = None
+    expense_date: date
+
+
 class ExpenseResponse(BaseModel):
     id: int
     amount: float
